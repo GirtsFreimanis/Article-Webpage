@@ -1,9 +1,10 @@
-![image](https://github.com/GirtsFreimanis/Article-Webpage/assets/98386245/4b83bda3-2ac4-413e-b040-ea27abd12582)# Article-Webpage
+# Article-Webpage
 ## Prerequisites:
 • MySql:
 install mysql,
 create a database and create a user with access to that database
-• rename ".env.example" to .env and fill in 
+• rename ".env.example" to ".env" and fill in blanks
+
 
 ## Articles Index view
 ![image](https://github.com/GirtsFreimanis/Article-Webpage/blob/master/readmePictures/1.png)
