@@ -1,8 +1,11 @@
 # Article-Webpage
 ## Prerequisites:
 • MySql:
+####
 install mysql,
 create a database and create a user with access to that database
+####
+
 • rename ".env.example" to ".env" and fill in blanks
 
 
