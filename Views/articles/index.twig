@@ -1,0 +1,59 @@
+{% include "partials/head.twig" %}
+{% include "partials/navbar.twig" %}
+    {% if status is defined and status is not null %}
+        <div class="alert container
+    {% if status =="success" %} alert-success {% endif %}
+    {% if status =="error" %} alert-danger {% endif %}
+alert-dismissible fade show" role="alert">
+            {{ message }}.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+<div class="container p-3">
+    <div class="row mb-3 ">
+        <div class="col">
+        </div>
+        <div class="col-auto">
+        </div>
+        <div class="col-auto">
+            <a href="/articles/create">
+                <button type="button" class="btn btn-success">
+                    {% include "partials/svgs/addIcon.twig" %}
+                    Add
+                </button>
+            </a>
+        </div>
+    </div>
+
+    {% for article in articles.articles %}
+
+        <div class="row mb-3 border p-2">
+
+            <div class="col d-flex align-items-center">
+                <div>
+                    <a href="/articles/{{ article.id }}">{{ article.title|slice(0, 60) ~ (article.title|length > 60 ? '...' : '') }}</a>
+                    <p class="mb-0">{{ article.createdAt.format("Y-m-d H:i:s") }}</p>
+                </div>
+            </div>
+            <div class="col-auto">
+                <a href="/articles/{{ article.id }}/edit">
+                    <button type="button" class="btn btn-primary">
+                        {% include "partials/svgs/editIcon.twig" %}
+                        Edit
+                    </button>
+                </a>
+            </div>
+            <div class="col-auto">
+                <form id="delete" method="POST" action="/articles/delete/{{ article.id }}">
+                    <button type="submit" class="btn btn-outline-danger"
+                            onClick="return confirm('Delete This article?')">
+                        {% include "partials/svgs/trashIcon.twig" %}
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% include "partials/footer.twig" %}

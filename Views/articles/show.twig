@@ -1,0 +1,20 @@
+{% include "partials/head.twig" %}
+{% include "partials/navbar.twig" %}
+
+<div class="container p-3">
+    <h1>
+        {{ article.title }}
+    </h1>
+    <p>published: {{ article.createdAt.format("Y-m-d H:i") }}
+        {% if article.updatedAt is defined and article.updatedAt is not null %}
+            | updated: {{ article.updatedAt.format("Y-m-d H:i") }}
+        {% endif %}
+    </p>
+    <img src="{{ article.picture }}">
+    <p>
+        {{ article.description }}
+    </p>
+
+</div>
+
+{% include "partials/footer.twig" %}
