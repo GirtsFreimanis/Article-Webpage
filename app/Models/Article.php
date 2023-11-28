@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Carbon\Carbon;
+use DateTimeZone;
 
 class Article
 {
@@ -20,7 +21,7 @@ class Article
         string  $title,
         string  $description,
         string  $picture,
-        string  $createdAt,
+        ?string $createdAt = null,
         ?int    $id = null,
         ?string $updatedAt = null
     )
@@ -28,7 +29,7 @@ class Article
         $this->title = $title;
         $this->description = $description;
         $this->picture = $picture;
-        $this->createdAt = new Carbon($createdAt);
+        $this->createdAt = $createdAt == null ? Carbon::now(new DateTimeZone('Europe/Riga')) : new Carbon($createdAt);
         $this->id = $id;
         $this->updatedAt = $updatedAt ? new Carbon($updatedAt) : null;
     }
@@ -61,5 +62,13 @@ class Article
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function update(array $data)
+    {
+        $this->title = $data['title'] ?? $this->title;
+        $this->description = $data['description'] ?? $this->description;
+        $this->picture = $data['picture'] ?? $this->picture;
+        $this->updatedAt = Carbon::now(new DateTimeZone('Europe/Riga'));
     }
 }

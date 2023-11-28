@@ -1,14 +1,13 @@
 {% include "partials/head.twig" %}
 {% include "partials/navbar.twig" %}
-    {% if status is defined and status is not null %}
-        <div class="alert container
-    {% if status =="success" %} alert-success {% endif %}
-    {% if status =="error" %} alert-danger {% endif %}
+
+{% if status is defined and status is not null %}
+    <div class="alert container{% if status =="success" %} alert-success {% endif %}{% if status =="error" %} alert-danger {% endif %}
 alert-dismissible fade show" role="alert">
-            {{ message }}.
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    {% endif %}
+        {{ message }}.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
 <div class="container p-3">
     <div class="row mb-3 ">
         <div class="col">
@@ -25,7 +24,7 @@ alert-dismissible fade show" role="alert">
         </div>
     </div>
 
-    {% for article in articles.articles %}
+    {% for article in articles.getAll %}
 
         <div class="row mb-3 border p-2">
 

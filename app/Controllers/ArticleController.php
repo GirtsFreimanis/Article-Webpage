@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Collections\ArticleCollection;
 use App\RedirectResponse;
+use App\Repositories\EmptyArticleRepository;
+use App\Repositories\MysqlArticleRepository;
 use App\Response;
+use App\Services\Article\DeleteArticleService;
+use App\Services\Article\IndexArticleService;
+use App\Services\Article\ShowArticleService;
+use App\Services\Article\StoreArticleService;
+use App\Services\Article\UpdateArticleService;
 use App\ViewResponse;
 use App\Models\Article;
-use Carbon\Carbon;
-use DateTimeZone;
 use Respect\Validation\Validator as v;
 
 class ArticleController extends BaseController
@@ -22,27 +26,11 @@ class ArticleController extends BaseController
         $status = $_SESSION['status'] ?? null;
         unset($_SESSION['status']);
 
-        $articles = $this->database->createQueryBuilder()
-            ->select("*")
-            ->from("articles")
-            ->fetchAllAssociative();
-
-        $articleCollection = new ArticleCollection();
-        $articles = array_reverse($articles);
-
-        foreach ($articles as $article) {
-            $articleCollection->add(new Article(
-                $article["title"],
-                $article["description"],
-                $article["picture"],
-                $article["created_at"],
-                (int)$article["id"],
-                $article["updated_at"]
-            ));
-        }
+        $service = new IndexArticleService(new MysqlArticleRepository());
+        $articles = $service->execute();
 
         return new ViewResponse('articles/index', [
-            'articles' => $articleCollection,
+            'articles' => $articles,
             'status' => $status,
             'message' => $message
         ]);
@@ -50,20 +38,9 @@ class ArticleController extends BaseController
 
     public function show(string $id): Response
     {
-        $data = $this->database->createQueryBuilder()
-            ->select("*")
-            ->from("articles")
-            ->where("id = :id")
-            ->setParameter("id", $id)
-            ->fetchAssociative();
-        $article = new Article(
-            $data["title"],
-            $data["description"],
-            $data["picture"],
-            $data["created_at"],
-            (int)$data["id"],
-            $data["updated_at"]
-        );
+        $service = new ShowArticleService(new MysqlArticleRepository());
+        $article = $service->execute((int)$id);
+
         return new ViewResponse(
             "articles/show",
             ["article" => $article]
@@ -90,23 +67,12 @@ class ArticleController extends BaseController
             $picture = $_POST["picture"];
         }
 
-        $this->database->createQueryBuilder()
-            ->insert("articles")
-            ->values(
-                [
-                    "title" => ":title",
-                    "description" => ":description",
-                    "picture" => ":picture",
-                    "created_at" => ":created_at",
-                ]
-            )->setParameters(
-                [
-                    "title" => $_POST["title"],
-                    "description" => $_POST["description"],
-                    "picture" => $picture,
-                    "created_at" => Carbon::now(new DateTimeZone('Europe/Riga'))
-                ]
-            )->executeQuery();
+        $service = new StoreArticleService(new MysqlArticleRepository());
+        $service->execute(
+            $_POST['title'],
+            $_POST['description'],
+            $picture,
+        );
 
         $_SESSION['status'] = 'success';
         $_SESSION['message'] = 'Article created successfully';
@@ -126,14 +92,7 @@ class ArticleController extends BaseController
             ->setParameter("id", $id)
             ->fetchAssociative();
 
-        $article = new Article(
-            $data["title"],
-            $data["description"],
-            $data["picture"],
-            $data["created_at"],
-            (int)$data["id"],
-            $data["updated_at"]
-        );
+        $article = $this->buildModel($data);
         return new ViewResponse(
             "articles/edit",
             ["article" => $article]
@@ -154,20 +113,13 @@ class ArticleController extends BaseController
             $picture = $_POST["picture"];
         }
 
-        $this->database->createQueryBuilder()
-            ->update("articles")
-            ->set("title", ":title")
-            ->set("description", ":description")
-            ->set("picture", ":picture")
-            ->set("updated_at", ":updated_at")
-            ->where("id = :id")
-            ->setParameters([
-                "id" => $id,
-                "title" => $_POST["title"],
-                "description" => $_POST["description"],
-                "picture" => $picture,
-                "updated_at" => Carbon::now(new DateTimeZone('Europe/Riga')),
-            ])->executeQuery();
+        $service = new UpdateArticleService(new MysqlArticleRepository());
+        $service->execute(
+            (int)$id,
+            $_POST['title'],
+            $_POST['description'],
+            $picture,
+        );
 
         $_SESSION['status'] = 'success';
         $_SESSION['message'] = 'Article updated successfully';
@@ -177,15 +129,25 @@ class ArticleController extends BaseController
 
     public function delete(string $id): Response
     {
-        $this->database->createQueryBuilder()
-            ->delete("articles")
-            ->where("id = :id")
-            ->setParameter("id", $id)
-            ->executeQuery();
+        $service = new DeleteArticleService(new MysqlArticleRepository());
+        $service->execute((int)$id);
+
         $_SESSION['status'] = 'success';
         $_SESSION['message'] = 'Article deleted successfully';
 
         return new RedirectResponse("/articles");
+    }
+
+    public function buildModel(array $data): Article
+    {
+        return new Article(
+            $data["title"],
+            $data["description"],
+            $data["picture"],
+            $data["created_at"],
+            (int)$data["id"],
+            $data["updated_at"]
+        );
     }
 
     public function validateArticle(?string $title, ?string $description): string
@@ -197,10 +159,5 @@ class ArticleController extends BaseController
             return "success";
         }
         return "error";
-    }
-
-    public function validatePictureUrl(?string $picture)
-    {
-
     }
 }
