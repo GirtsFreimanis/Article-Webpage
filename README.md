@@ -7,7 +7,7 @@ CREATE SCHEMA article_webpage;
 <br />
 CREATE USER 'article_user'@'localhost' IDENTIFIED BY  'MyPassword'
 <br />
-GRANT ALL PRIVILEGES ON database_name.* TO 'article_user'@'localhost';
+GRANT ALL PRIVILEGES ON article_webpage.* TO 'article_user'@'localhost';
 ####
 CREATE TABLE article_webpage.articles (
     id          INT AUTO_INCREMENT,
