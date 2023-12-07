@@ -12,15 +12,27 @@ class EmptyArticleRepository implements ArticleRepository
     public function getAll(): ArticleCollection
     {
         return new ArticleCollection([
-            new Article("title1", "desc", "", null, 1),
-            new Article("title2", "desc", "", null, 2),
-            new Article("title3", "desc", "", null, 3),
+            new Article("zinas", "desc", "", null, 1),
+            new Article("news", "desc", "", null, 2),
+            new Article("something", "desc", "", null, 3),
         ]);
     }
 
     public function getById(int $id): ?Article
     {
+        $articles = $this->getAll()->getAll();
+        
+        foreach ($articles as $article) {
+            if ($article->getId() === $id) {
+                return $article;
+            }
+        }
         return null;
+    }
+
+    public function show(int $id): ?Article
+    {
+        return $this->getById($id);
     }
 
     public function insert(Article $article): void

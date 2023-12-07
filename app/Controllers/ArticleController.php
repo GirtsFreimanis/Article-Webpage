@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\RedirectResponse;
-use App\Repositories\EmptyArticleRepository;
-use App\Repositories\MysqlArticleRepository;
 use App\Response;
 use App\Services\Article\DeleteArticleService;
 use App\Services\Article\IndexArticleService;
@@ -17,8 +15,29 @@ use App\ViewResponse;
 use App\Models\Article;
 use Respect\Validation\Validator as v;
 
-class ArticleController extends BaseController
+class ArticleController
 {
+    private IndexArticleService $indexArticleService;
+    private ShowArticleService $showArticleService;
+    private StoreArticleService $storeArticleService;
+    private UpdateArticleService $updateArticleService;
+    private DeleteArticleService $deleteArticleService;
+
+    public function __construct(
+        IndexArticleService  $indexArticleService,
+        ShowArticleService   $showArticleService,
+        StoreArticleService  $storeArticleService,
+        UpdateArticleService $updateArticleService,
+        DeleteArticleService $deleteArticleService
+    )
+    {
+        $this->indexArticleService = $indexArticleService;
+        $this->showArticleService = $showArticleService;
+        $this->storeArticleService = $storeArticleService;
+        $this->updateArticleService = $updateArticleService;
+        $this->deleteArticleService = $deleteArticleService;
+    }
+
     public function index(): Response
     {
         $message = $_SESSION['message'] ?? null;
@@ -26,8 +45,7 @@ class ArticleController extends BaseController
         $status = $_SESSION['status'] ?? null;
         unset($_SESSION['status']);
 
-        $service = new IndexArticleService(new MysqlArticleRepository());
-        $articles = $service->execute();
+        $articles = $this->indexArticleService->execute();
 
         return new ViewResponse('articles/index', [
             'articles' => $articles,
@@ -38,8 +56,7 @@ class ArticleController extends BaseController
 
     public function show(string $id): Response
     {
-        $service = new ShowArticleService(new MysqlArticleRepository());
-        $article = $service->execute((int)$id);
+        $article = $this->showArticleService->execute((int)$id);
 
         return new ViewResponse(
             "articles/show",
@@ -67,8 +84,7 @@ class ArticleController extends BaseController
             $picture = $_POST["picture"];
         }
 
-        $service = new StoreArticleService(new MysqlArticleRepository());
-        $service->execute(
+        $this->storeArticleService->execute(
             $_POST['title'],
             $_POST['description'],
             $picture,
@@ -84,15 +100,8 @@ class ArticleController extends BaseController
 
     public function edit(string $id): Response
     {
+        $article = $this->showArticleService->execute((int)$id);
 
-        $data = $this->database->createQueryBuilder()
-            ->select("*")
-            ->from("articles")
-            ->where("id = :id")
-            ->setParameter("id", $id)
-            ->fetchAssociative();
-
-        $article = $this->buildModel($data);
         return new ViewResponse(
             "articles/edit",
             ["article" => $article]
@@ -113,8 +122,7 @@ class ArticleController extends BaseController
             $picture = $_POST["picture"];
         }
 
-        $service = new UpdateArticleService(new MysqlArticleRepository());
-        $service->execute(
+        $this->updateArticleService->execute(
             (int)$id,
             $_POST['title'],
             $_POST['description'],
@@ -129,8 +137,7 @@ class ArticleController extends BaseController
 
     public function delete(string $id): Response
     {
-        $service = new DeleteArticleService(new MysqlArticleRepository());
-        $service->execute((int)$id);
+        $this->deleteArticleService->execute((int)$id);
 
         $_SESSION['status'] = 'success';
         $_SESSION['message'] = 'Article deleted successfully';

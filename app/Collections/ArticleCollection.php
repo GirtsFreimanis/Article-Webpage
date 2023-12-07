@@ -27,6 +27,9 @@ class ArticleCollection
 
     public function getAll(): array
     {
+        if (empty($this->articles)) {
+            return [];
+        }
         return $this->articles;
     }
 }

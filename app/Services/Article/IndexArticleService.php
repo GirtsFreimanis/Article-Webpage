@@ -21,5 +21,4 @@ class IndexArticleService
     {
         return $this->articleRepository->getAll();
     }
-
 }

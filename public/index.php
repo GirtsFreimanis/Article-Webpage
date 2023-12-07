@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 use App\RedirectResponse;
+use App\Repositories\ArticleRepository;
+use App\Repositories\MysqlArticleRepository;
 use App\ViewResponse;
+use DI\ContainerBuilder;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
@@ -13,6 +16,14 @@ require_once "../vendor/autoload.php";
 
 $loader = new FilesystemLoader('../Views');
 $twig = new Environment($loader);
+
+$builder = new ContainerBuilder();
+
+$builder->addDefinitions([
+    ArticleRepository::class => DI\create(MysqlArticleRepository::class)
+]);
+
+$container = $builder->build();
 
 $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) {
     $r->addRoute('GET', '/articles', ['App\Controllers\ArticleController', "index"]);
@@ -50,7 +61,9 @@ switch ($routeInfo[0]) {
 
         [$controller, $method] = $handler;
 
-        $response = (new $controller)->{$method}(...array_values($vars));
+        $controller = $container->get($controller);
+        $response = $controller->{$method}(...array_values($vars));
+
         switch (true) {
             case $response instanceof ViewResponse:
                 echo $twig->render($response->getViewName() . ".twig", $response->getData());
